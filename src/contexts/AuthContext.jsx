@@ -1,71 +1,67 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
-
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Axios should include credentials (cookies) for auth
-  axios.defaults.withCredentials = true;
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkLoggedIn = async () => {
+    // Check for stored token on mount
+    const token = localStorage.getItem('token');
+    if (token) {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/auth/status`);
-        console.log('Auth response:', res.data);
-        // If we get any response, try to use it
-        if (res.data) {
-          setUser(res.data.user || res.data);
-        } else {
-          setUser(null);
-        }
+        const decoded = jwtDecode(token);
+        // Automatically log in the user if token is valid
+        setUser(decoded);
       } catch (error) {
-        console.log('Auth error:', error.response?.data);
-        // If we get an error response with data, try to use it
-        if (error.response?.data) {
-          setUser(error.response.data.user || error.response.data);
-        } else {
-          setUser(null);
-        }
-      } finally {
-        setLoading(false);
+        console.error('Error decoding token:', error);
+        localStorage.removeItem('token');
       }
-    };
-
-    checkLoggedIn();
+    }
+    setLoading(false);
   }, []);
 
-  const logout = async () => {
-    setLoading(true);
-    setError(null);
-
+  const login = async (token, userData) => {
     try {
-      await axios.get(`${import.meta.env.VITE_API_URL}/auth/logout`);
-      setUser(null);
+      // Store token in localStorage
+      localStorage.setItem('token', token);
+      
+      // Set user data
+      setUser(userData);
+      setError(null);
     } catch (error) {
-      setError(error.response?.data?.message || 'Logout failed');
-    } finally {
-      setLoading(false);
+      console.error('Login error:', error);
+      setError('Failed to login. Please try again.');
+      throw error;
     }
   };
 
-  const value = {
-    user,
-    loading,
-    error,
-    logout,
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
-}
+  const isAuthenticated = !!user;
+
+  const value = {
+    user,
+    error,
+    loading,
+    login,
+    logout,
+    isAuthenticated,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
