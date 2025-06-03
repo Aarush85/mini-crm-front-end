@@ -21,23 +21,7 @@ export function AuthProvider({ children }) {
   // Axios should include credentials (cookies) for auth
   axios.defaults.withCredentials = true;
 
-  // Comment out the authentication check since we're using test data
-  /*
-  useEffect(() => {
-    const checkLoggedIn = async () => {
-      try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/auth/status`);
-        setUser(res.data.user);
-      } catch (error) {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    checkLoggedIn();
-  }, []);
-  */
 
   const logout = async () => {
     setLoading(true);
