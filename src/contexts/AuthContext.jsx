@@ -8,32 +8,28 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Hardcoded user data
+  const testUser = {
+    id: '683c2bdebea030873253b8a0',
+    email: 'aarushkaura2016@gmail.com'
+  };
+
+  const [user, setUser] = useState(testUser); // Set test user by default
+  const [loading, setLoading] = useState(false); // Set loading to false since we're using test data
   const [error, setError] = useState(null);
 
   // Axios should include credentials (cookies) for auth
   axios.defaults.withCredentials = true;
 
+  // Comment out the authentication check since we're using test data
+  /*
   useEffect(() => {
     const checkLoggedIn = async () => {
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL}/auth/status`);
-        console.log('Auth response:', res.data);
-        // If we get any response, try to use it
-        if (res.data) {
-          setUser(res.data.user || res.data);
-        } else {
-          setUser(null);
-        }
+        setUser(res.data.user);
       } catch (error) {
-        console.log('Auth error:', error.response?.data);
-        // If we get an error response with data, try to use it
-        if (error.response?.data) {
-          setUser(error.response.data.user || error.response.data);
-        } else {
-          setUser(null);
-        }
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -41,6 +37,7 @@ export function AuthProvider({ children }) {
 
     checkLoggedIn();
   }, []);
+  */
 
   const logout = async () => {
     setLoading(true);

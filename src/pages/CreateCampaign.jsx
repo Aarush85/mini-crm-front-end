@@ -105,7 +105,7 @@ setAudienceCount(typeof count === 'number' ? count : 0);
       setError(null);
       
       // Validate required fields
-      if (!formData.name || !formData.message || !formData.subject) {
+      if (!formData.name || !formData.message) {
         setError('Please fill in all required fields');
         setLoading(false);
         return;
